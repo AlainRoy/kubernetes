@@ -693,9 +693,16 @@ func TestValidateDaemonSet(t *testing.T) {
 				Template: validPodTemplate.Template,
 			},
 		},
+		"nil selector": {
+			ObjectMeta: api.ObjectMeta{Name: "abc", Namespace: api.NamespaceDefault},
+			Spec: extensions.DaemonSetSpec{
+				Template: validPodTemplate.Template,
+			},
+		},
 		"empty selector": {
 			ObjectMeta: api.ObjectMeta{Name: "abc", Namespace: api.NamespaceDefault},
 			Spec: extensions.DaemonSetSpec{
+				Selector: &unversioned.LabelSelector{},
 				Template: validPodTemplate.Template,
 			},
 		},
@@ -1237,8 +1244,6 @@ func TestValidateIngress(t *testing.T) {
 	badHostIP := newValid()
 	badHostIP.Spec.Rules[0].Host = hostIP
 	badHostIPErr := fmt.Sprintf("spec.rules[0].host: Invalid value: '%v'", hostIP)
-	noSecretName := newValid()
-	noSecretName.Spec.TLS = []extensions.IngressTLS{{SecretName: ""}}
 
 	errorCases := map[string]extensions.Ingress{
 		"spec.backend.serviceName: Required value":        servicelessBackend,
@@ -1247,7 +1252,6 @@ func TestValidateIngress(t *testing.T) {
 		"spec.rules[0].host: Invalid value":               badHost,
 		"spec.rules[0].http.paths: Required value":        noPaths,
 		"spec.rules[0].http.paths[0].path: Invalid value": noForwardSlashPath,
-		"spec.tls[0].secretName: Required value":          noSecretName,
 	}
 	errorCases[badPathErr] = badRegexPath
 	errorCases[badHostIPErr] = badHostIP
