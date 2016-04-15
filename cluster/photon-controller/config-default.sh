@@ -53,7 +53,12 @@ NODE_NAMES=($(eval echo ${INSTANCE_PREFIX}-node-{1..${NUM_NODES}}))
 VM_USER=kube
 
 # SSH options for how we connect to the Kubernetes VMs
-SSH_OPTS="-oStrictHostKeyChecking=no -oLogLevel=ERROR"
+# We set the user known hosts file to /dev/null because we are connecting to new VMs.
+# When working in an environment where there is a lot of VM churn, VM IP addresses
+# will be reused, and the ssh keys will be different. This prevents us from seeing error
+# due to this, and it will not save the SSH key to the known_hosts file, so users will
+# still have standard ssh security checks.
+SSH_OPTS="-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -oLogLevel=ERROR"
 
 # Optional: Enable node logging.
 # Note: currently untested

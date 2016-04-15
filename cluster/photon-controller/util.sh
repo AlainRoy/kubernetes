@@ -331,7 +331,7 @@ function pc-delete-vm {
 #
 function find-image-id {
     local rc=0
-    PHOTON_IMAGE_ID=$($PHOTON image list | head -1 | grep $'\t'${PHOTON_IMAGE}$'\t' | grep READY | awk -F'\t' '{print $1}')
+    PHOTON_IMAGE_ID=$($PHOTON image list | grep $'\t'${PHOTON_IMAGE}$'\t' | head -1 | grep READY | awk -F'\t' '{print $1}')
     if [ $rc -ne 0 ]; then
         kube::log::error "Cannot find image \"${PHOTON_IMAGE}\""
         fail=1
@@ -451,6 +451,11 @@ function gen-master-salt {
      (
         echo '#!/bin/bash'
         echo 'echo $(date) >> /tmp/master-salt.log'
+        echo 'if [ -f /var/lib/docker/network/files/local-kv.db ]; then'
+        echo '    # Work around for https://github.com/docker/docker/issues/18113'
+        echo '    # If we do not do this, docker-engine can fail to install'
+        echo '    rm /var/lib/docker/network/files/local-kv.db'
+        echo 'fi'
         echo "salt kubernetes-master state.highstate -t 30 --no-color > /tmp/master-salt.out"
         echo 'grep -E "Failed:[[:space:]]+0" /tmp/master-salt.out'
         echo 'success=$?'
